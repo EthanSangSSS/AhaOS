@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-  {name = "Samuel Sang"}
+  {name = "Ethan Sang"}
 ]
 keywords = ["ai-agents", "memory", "insight", "reflection", "rag", "agentic-ai"]
 classifiers = [
