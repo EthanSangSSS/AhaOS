@@ -59,7 +59,7 @@ Observe
 ## Quickstart
 
 ```bash
-git clone https://github.com/SamuelSang/AhaOS.git
+git clone https://github.com/EthanSangSSS/AhaOS.git
 cd AhaOS
 python3 -m venv .venv
 source .venv/bin/activate
