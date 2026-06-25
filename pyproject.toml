@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ahaos"
+version = "0.1.0"
+description = "An incubation-first insight layer for AI agents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+  {name = "Samuel Sang"}
+]
+keywords = ["ai-agents", "memory", "insight", "reflection", "rag", "agentic-ai"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0", "ruff>=0.5.0"]
+
+[project.scripts]
+ahaos = "ahaos.cli:main"
+
+[tool.setuptools]
+packages = ["ahaos"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
