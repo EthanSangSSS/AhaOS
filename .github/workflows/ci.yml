@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m py_compile ahaos/*.py
+      - run: pytest
+      - run: ahaos validate --memory-dir examples/coding_agent_pr_review
+      - run: ahaos run --memory-dir examples/coding_agent_pr_review --report-dir /tmp/ahaos-reports --top-k 3
