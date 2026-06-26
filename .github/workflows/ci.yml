@@ -13,7 +13,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -e ".[dev]"
-      - run: python -m py_compile ahaos/*.py
+      - run: python -m py_compile ahaos/*.py scripts/pilot.py
       - run: pytest
       - run: ahaos validate --memory-dir examples/coding_agent_pr_review
       - run: ahaos run --memory-dir examples/coding_agent_pr_review --report-dir /tmp/ahaos-reports --top-k 3
+      - run: python scripts/pilot.py --input-dir examples/local_pilot_input --work-dir /tmp/ahaos-local-pilot --report-dir /tmp/ahaos-local-pilot-reports --top-k 3
+      - run: python scripts/pilot.py --input-dir examples/local_pilot_input --work-dir /tmp/ahaos-local-pilot --report-dir /tmp/ahaos-local-pilot-reports --top-k 3 --dry-run
