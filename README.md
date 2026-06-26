@@ -82,24 +82,40 @@ ahaos run --memory-dir examples/coding_agent_pr_review --report-dir .ahaos/repor
 
 ## Current scope
 
-AhaOS v0.1 is intentionally small:
+AhaOS v0.3 is an incubation-first insight layer.
 
-- JSONL storage
-- local-first execution
-- no cloud dependency
-- no external API calls
-- open-loop tracking
-- time / activation metadata
-- age-boosted pressure scoring
-- pattern mining
-- contradiction mining
-- reuse mining
+### v0.3 includes:
+- temporal metadata
+- forgetting-curve salience decay
+- activation heat
+- spreading activation
 - negative-space mining
-- dynamic novelty scoring
 - pilot trigger candidates
-- evidence gate
-- Markdown report generation
-- Codex / Claude skill templates
+- candidate maturation
+- local pilot state
+
+## Local Pilot Quickstart
+
+You can run the pilot to scan local directories for memories:
+
+```bash
+python3 scripts/pilot.py \
+  --input-dir examples/local_pilot_input \
+  --work-dir /tmp/ahaos-local-pilot \
+  --report-dir /tmp/ahaos-local-pilot-reports \
+  --top-k 3
+```
+
+To run without writing a report (dry-run):
+
+```bash
+python3 scripts/pilot.py \
+  --input-dir examples/local_pilot_input \
+  --work-dir /tmp/ahaos-local-pilot \
+  --report-dir /tmp/ahaos-local-pilot-reports \
+  --top-k 3 \
+  --dry-run
+```
 
 ## Non-goals
 

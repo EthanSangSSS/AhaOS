@@ -75,6 +75,13 @@ def cmd_run(args: argparse.Namespace) -> int:
     if isinstance(safety, dict) and "require_evidence" in safety:
         require_evidence = bool(safety["require_evidence"])
 
+    # Enforce evidence gate: config alone cannot disable it unless CLI flag is set
+    unsafe_flag = getattr(args, "unsafe_allow_no_evidence", False)
+    if not require_evidence and not unsafe_flag:
+        require_evidence = True
+    if unsafe_flag:
+        require_evidence = False
+
     atoms = load_memory_atoms(memory_dir)
     loops = load_open_loops(memory_dir)
     candidates = incubate(atoms, loops)
@@ -109,6 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--top-k", type=int, default=3)
     p_run.add_argument("--since", default="24h", help="Reserved for future event filtering")
     p_run.add_argument("--dry-run", action="store_true")
+    p_run.add_argument("--unsafe-allow-no-evidence", action="store_true", help="UNSAFE: Disable the requirement of evidence verification for insights.")
     p_run.set_defaults(func=cmd_run)
 
     return parser

@@ -238,6 +238,24 @@ def existing_open_loop(row: dict[str, Any]) -> dict[str, Any] | None:
     return loop
 
 
+_SECRET_PATTERNS = [
+    "sk-",
+    "ghp_",
+    "github_pat_",
+    "AKIA",
+    "xoxb-",
+    "BEGIN PRIVATE KEY",
+    "PRIVATE KEY",
+    "client_secret",
+    "refresh_token",
+    "access_token",
+]
+
+
+def _contains_secrets(text: str) -> bool:
+    return any(pattern in text for pattern in _SECRET_PATTERNS)
+
+
 def load_local_inputs(input_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     atoms: list[dict[str, Any]] = []
     loops: list[dict[str, Any]] = []
@@ -245,6 +263,8 @@ def load_local_inputs(input_dir: Path) -> tuple[list[dict[str, Any]], list[dict[
         if path.suffix.lower() == ".jsonl":
             for line in path.read_text(encoding="utf-8").splitlines():
                 if not line.strip():
+                    continue
+                if _contains_secrets(line):
                     continue
                 row = json.loads(line)
                 if not isinstance(row, dict):
@@ -259,6 +279,8 @@ def load_local_inputs(input_dir: Path) -> tuple[list[dict[str, Any]], list[dict[
             continue
 
         for line in path.read_text(encoding="utf-8").splitlines():
+            if _contains_secrets(line):
+                continue
             atom = atom_from_text(path, input_dir, line)
             if atom is not None:
                 atoms.append(atom)
@@ -669,12 +691,23 @@ def promote_pilot_candidate(c_dict: dict[str, Any], atoms_by_id: dict[str, Memor
 
     aha_score = float(c_dict.get("aha_score", 0.5))
 
+    # Map association types to InsightMechanism literals
+    assoc_type = c_dict.get("association_type", "")
+    if assoc_type == "repeated_tag":
+        mechanism = "cross_project_pattern"
+    elif assoc_type == "structural_echo":
+        mechanism = "spreading_activation"
+    elif assoc_type == "open_loop_bridge":
+        mechanism = "open_loop_pressure"
+    else:
+        mechanism = "cross_project_pattern"
+
     return InsightCandidate(
         id=c_dict["id"],
         title=c_dict["title"],
         claim=c_dict.get("hypothesis", ""),
         evidence=deduped_evidence,
-        mechanism=c_dict.get("association_type", "pilot_heuristic"),
+        mechanism=mechanism,
         novelty=round(aha_score * 0.9, 2),
         usefulness=aha_score,
         actionability=0.7,
@@ -694,6 +727,7 @@ def run_pilot(
     report_dir: Path,
     top_k: int,
     dry_run: bool,
+    unsafe_allow_no_evidence: bool = False,
 ) -> str | Path:
     now = time.time()
     state_data = load_pilot_state(work_dir)
@@ -718,6 +752,11 @@ def run_pilot(
     require_evidence = True
     if isinstance(safety, dict) and "require_evidence" in safety:
         require_evidence = bool(safety["require_evidence"])
+
+    if not require_evidence and not unsafe_allow_no_evidence:
+        require_evidence = True
+    if unsafe_allow_no_evidence:
+        require_evidence = False
 
     atoms, loops = load_local_inputs(input_dir)
     apply_seen_metadata(atoms, state_data.get("atom_meta", {}), now)
@@ -806,6 +845,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--report-dir", default=Path("/tmp/ahaos-reports"), type=Path)
     parser.add_argument("--top-k", default=3, type=int)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--unsafe-allow-no-evidence", action="store_true", help="UNSAFE: Disable the requirement of evidence verification for insights.")
     return parser
 
 
@@ -818,6 +858,7 @@ def main(argv: list[str] | None = None) -> int:
             report_dir=args.report_dir,
             top_k=args.top_k,
             dry_run=args.dry_run,
+            unsafe_allow_no_evidence=args.unsafe_allow_no_evidence,
         )
     except Exception as exc:  # noqa: BLE001 - CLI should return a concise failure
         print(f"ERROR: {exc}", file=sys.stderr)

@@ -391,3 +391,33 @@ def test_pilot_candidate_promotion(tmp_path: Path) -> None:
     # The structural echo candidate should now be promoted and included in the report!
     assert "Structural similarity" in report_content or "database migration" in report_content or "user service" in report_content
 
+
+def test_pilot_skips_secret_tokens(tmp_path: Path) -> None:
+    from scripts.pilot import load_local_inputs
+    input_dir = tmp_path / "inputs"
+    input_dir.mkdir()
+
+    # Text file contains normal lines and a secret-like line
+    (input_dir / "notes.md").write_text(
+        "- This is a normal memory claim that has evidence. [Doc](file:///ref)\n"
+        "- This contains api_token = 'ghp_secrettoken12345' which should be skipped.\n"
+        "- This is another valid memory claim with evidence. [PR](file:///ref2)\n",
+        encoding="utf-8"
+    )
+
+    # jsonl contains normal line and secret-like line
+    (input_dir / "events.jsonl").write_text(
+        '{"id": "atom_ok", "claim": "Normal JSONL memory atom claim here.", "type": "semantic", "evidence": [{"type": "local_file", "ref": "events.jsonl", "trust_level": "first_party_file"}], "tags": ["jsonl"]}\n'
+        '{"id": "atom_bad", "claim": "sk-1234567890", "type": "semantic"}\n',
+        encoding="utf-8"
+    )
+
+    atoms, loops = load_local_inputs(input_dir)
+    claims = {atom["claim"] for atom in atoms}
+    assert "This is a normal memory claim that has evidence. [Doc](file:///ref)" in claims
+    assert "This is another valid memory claim with evidence. [PR](file:///ref2)" in claims
+    assert "Normal JSONL memory atom claim here." in claims
+
+    # Secret lines must be skipped entirely
+    assert not any("ghp_" in c for c in claims)
+    assert not any("sk-" in c for c in claims)
