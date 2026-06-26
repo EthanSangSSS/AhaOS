@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Literal
 
 
@@ -47,6 +48,24 @@ class Evidence:
         )
 
 
+def _timestamp(value: Any, default: float = 0.0) -> float:
+    if value is None or value == "":
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            pass
+        try:
+            normalized = value.replace("Z", "+00:00")
+            return datetime.fromisoformat(normalized).timestamp()
+        except ValueError:
+            return default
+    return default
+
+
 @dataclass(frozen=True)
 class MemoryAtom:
     id: str
@@ -58,6 +77,10 @@ class MemoryAtom:
     salience: float = 0.5
     tags: list[str] = field(default_factory=list)
     status: str = "active"
+    created_at: float = 0.0
+    last_seen_at: float = 0.0
+    last_triggered_at: float = 0.0
+    activation_count: int = 0
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "MemoryAtom":
@@ -71,6 +94,10 @@ class MemoryAtom:
             salience=float(data.get("salience", 0.5)),
             tags=[str(x) for x in data.get("tags", [])],
             status=str(data.get("status", "active")),
+            created_at=_timestamp(data.get("created_at")),
+            last_seen_at=_timestamp(data.get("last_seen_at")),
+            last_triggered_at=_timestamp(data.get("last_triggered_at")),
+            activation_count=int(data.get("activation_count", 0)),
         )
 
 
@@ -83,6 +110,10 @@ class OpenLoop:
     priority: str = "P2"
     status: str = "open"
     related_memories: list[str] = field(default_factory=list)
+    created_at: float = 0.0
+    last_seen_at: float = 0.0
+    last_triggered_at: float = 0.0
+    activation_count: int = 0
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "OpenLoop":
@@ -94,6 +125,10 @@ class OpenLoop:
             priority=str(data.get("priority", "P2")),
             status=str(data.get("status", "open")),
             related_memories=[str(x) for x in data.get("related_memories", [])],
+            created_at=_timestamp(data.get("created_at")),
+            last_seen_at=_timestamp(data.get("last_seen_at")),
+            last_triggered_at=_timestamp(data.get("last_triggered_at")),
+            activation_count=int(data.get("activation_count", 0)),
         )
 
 

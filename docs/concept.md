@@ -16,6 +16,14 @@ AhaOS defines this as an insight.
 
 An insight is a useful, non-obvious, evidence-backed connection between memories, open loops, failures, current goals, and verified telemetry.
 
+## Aha moment model
+
+AhaOS does not claim to reproduce human cognition. It implements a practical agent mechanism inspired by three parts of aha-like work:
+
+- **Incubation:** unresolved memories and loops accumulate pressure over time.
+- **Remote association:** structural slots and tag/project distance help connect items that are not merely text duplicates.
+- **Trigger activation:** new atoms can reactivate older dormant atoms and produce trigger candidates.
+
 ## What AhaOS optimizes for
 
 - hidden bridges
@@ -23,6 +31,7 @@ An insight is a useful, non-obvious, evidence-backed connection between memories
 - repeated friction
 - contradiction detection
 - reusable procedures
+- negative-space gaps
 - safety-bounded recommendations
 
 ## What it does not optimize for

@@ -25,11 +25,11 @@ def cmd_init(args: argparse.Namespace) -> int:
     config = base / ".ahaos" / "config.yaml"
     if not config.exists():
         config.write_text(
-            "delivery:\\n"
-            "  max_daily_insights: 3\\n"
-            "safety:\\n"
-            "  allow_autonomous_actions: false\\n"
-            "  require_evidence: true\\n",
+            "delivery:\n"
+            "  max_daily_insights: 3\n"
+            "safety:\n"
+            "  allow_autonomous_actions: false\n"
+            "  require_evidence: true\n",
             encoding="utf-8",
         )
 

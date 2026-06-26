@@ -78,5 +78,13 @@ def write_report(report_dir: Path, content: str) -> Path:
     report_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     path = report_dir / f"{stamp}.md"
+    if path.exists():
+        counter = 2
+        while True:
+            candidate = report_dir / f"{stamp}-{counter}.md"
+            if not candidate.exists():
+                path = candidate
+                break
+            counter += 1
     path.write_text(content, encoding="utf-8")
     return path

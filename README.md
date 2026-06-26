@@ -16,6 +16,9 @@ It is a local-first engine for generating:
 - reusable patterns
 - contradiction alerts
 - open-loop pressure signals
+- time-incubated memory pressure
+- incremental trigger signals
+- negative-space gaps
 - evidence-backed insight reports
 - agent skills for reflection and reuse
 
@@ -86,9 +89,14 @@ AhaOS v0.1 is intentionally small:
 - no cloud dependency
 - no external API calls
 - open-loop tracking
+- time / activation metadata
+- age-boosted pressure scoring
 - pattern mining
 - contradiction mining
 - reuse mining
+- negative-space mining
+- dynamic novelty scoring
+- local pilot trigger candidates
 - evidence gate
 - Markdown report generation
 - Codex / Claude skill templates
@@ -111,8 +119,8 @@ AhaOS is the missing incubation layer between agent memory and agent action.
 ahaos/
   models.py          # typed schema dataclasses
   storage_jsonl.py   # local JSONL loading and validation
-  pressure.py        # open-loop and salience scoring
-  incubation.py      # pattern / contradiction / reuse mining
+  pressure.py        # open-loop, salience, and age-boost scoring
+  incubation.py      # pattern / contradiction / reuse / negative-space mining
   verification.py    # evidence and safety gates
   report.py          # Markdown report generation
   cli.py             # command line interface
@@ -122,6 +130,9 @@ docs/
   architecture.md
   safety_model.md
   evaluation.md
+
+scripts/
+  local_pilot.py     # explicit local input pilot with trigger candidates
 
 skills/
   codex/ahaos-insight-engine/SKILL.md
