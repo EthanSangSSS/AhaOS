@@ -117,6 +117,16 @@ python3 scripts/pilot.py \
   --dry-run
 ```
 
+## Agent Workflow Integration
+
+AhaOS is most useful as an agent-side memory incubator, not as a replacement for an agent's working memory or for primary evidence. A practical integration pattern is to run it at three checkpoints:
+
+1. **Preflight:** before complex multi-file work, release/signing/CI/cron changes, or workflow design, create a small explicit `/tmp` input bundle with the current goal, constraints, known risks, and relevant local notes. Inspect AhaOS output for historical traps, protected scopes, and reusable prior patterns.
+2. **Mid-flight:** after repeated failures or surprising behavior, add the failing commands, observations, and candidate causes as JSONL or Markdown notes. Use `trigger_candidates.jsonl` to see whether the new evidence reactivates older dormant memories.
+3. **Final reflection:** before commit/push or handoff, review `aha_candidates.jsonl` and `latent_links.jsonl` for unclosed risks and reusable lessons. Promote only verified findings into AGENTS.md rules, skills, SOPs, or checklists.
+
+Treat AhaOS outputs as hypotheses. Validate them with source files, tests, logs, builds, git state, and other primary evidence before acting. Do not feed secrets, env files, SSH keys, token files, browser profiles, or broad `$HOME` scans into the pilot.
+
 ## Non-goals
 
 AhaOS does not:
