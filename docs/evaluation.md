@@ -23,3 +23,7 @@ AhaOS should be evaluated as an insight engine, not as a retrieval system.
 - Contradiction detection rate
 - Poisoned memory acceptance rate
 - Interruption regret
+
+## Operational Replay
+
+Evaluate the agent checkpoint loop on 30-50 completed tasks that meet the checkpoint trigger policy. For each task, compare a baseline review with a review that receives the checkpoint report. Record whether a top-three candidate was useful, independently verified, rejected as noise, or changed a decision. Report median added time and count reusable assets created from verified candidates.

@@ -9,9 +9,13 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.pilot import (
+    apply_seen_metadata,
+    atom_from_text,
+    infer_tags,
     is_allowed_input_file,
     iter_input_files,
     load_local_inputs,
+    mark_activated_metadata,
     main,
     run_pilot,
 )
@@ -109,6 +113,30 @@ def test_load_local_inputs_generates_conservative_atoms(tmp_path: Path) -> None:
     assert "validation" in generated[0]["tags"]
     assert any(atom["id"] == "atom_existing" for atom in atoms)
     assert loops[0]["id"] == "loop_existing"
+
+
+def test_chinese_input_receives_normalized_tags_and_procedural_type(tmp_path: Path) -> None:
+    tags = infer_tags("发布前必须完成验证和回滚流程 #发布")
+    assert {"release", "validation", "rollback", "procedure"}.issubset(tags)
+
+    atom = atom_from_text(
+        tmp_path / "notes.md",
+        tmp_path,
+        "发布前必须执行验证流程，失败时按回滚清单处理。",
+    )
+    assert atom is not None
+    assert atom["type"] == "procedural"
+
+
+def test_seen_metadata_only_changes_when_an_atom_is_reactivated() -> None:
+    rows = [{"id": "atom_old", "claim": "Old memory", "created_at": 10.0, "last_seen_at": 10.0}]
+    prior = {"atom_old": {"created_at": 10.0, "last_seen_at": 10.0}}
+
+    apply_seen_metadata(rows, prior, now=20.0)
+    assert rows[0]["last_seen_at"] == 10.0
+
+    mark_activated_metadata(rows, {"atom_old"}, set(), now=20.0)
+    assert rows[0]["last_seen_at"] == 20.0
 
 
 def test_run_pilot_writes_memory_and_report(tmp_path: Path) -> None:

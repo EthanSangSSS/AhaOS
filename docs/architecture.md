@@ -8,11 +8,11 @@ Observe -> Atomize -> Link -> Pressurize -> Incubate -> Compose -> Verify -> Del
 
 ## Observe
 
-Read events from local sources: Markdown, JSONL, Git logs, PR summaries, CI logs, or manual notes.
+Read explicit local events: Markdown, JSONL, Git logs, PR summaries, CI logs, or manual notes. The agent checkpoint path accepts only agent-provided task summaries and persists them in a project namespace; it does not ingest raw chat histories.
 
 ## Atomize
 
-Convert events into small durable memory atoms.
+Convert events into small durable memory atoms. Deterministic Chinese aliases normalize common release, validation, rollback, workflow, and failure language into portable tags; explicit procedural language becomes a `procedural` atom instead of a generic semantic note.
 
 ## Link
 
@@ -20,7 +20,7 @@ Connect atoms through tags, projects, evidence, relation hints, and explainable 
 
 ## Pressurize
 
-Prioritize unresolved loops, repeated failures, user priorities, cross-project reuse potential, and incubation age. Memory atoms and open loops may carry `created_at`, `last_seen_at`, `last_triggered_at`, and `activation_count`; older unresolved items receive a capped age boost.
+Prioritize unresolved loops, repeated failures, user priorities, cross-project reuse potential, and incubation age. Memory atoms and open loops may carry `created_at`, `last_seen_at`, `last_triggered_at`, and `activation_count`; older unresolved items receive a capped age boost over days. A full scan does not refresh `last_seen_at`; only a new or reactivated atom does.
 
 ## Incubate
 
@@ -40,8 +40,8 @@ The local pilot persists `state.json` under its work directory. On later runs, n
 
 ## Verify
 
-Reject candidates without evidence, with excessive risk, or with model inference as the only support.
+Reject candidates without evidence, with excessive risk, or with model inference as the only support. Pattern, contradiction, negative-space, and spreading-activation claims also require two independent evidence references.
 
 ## Deliver
 
-Output rare, actionable, evidence-backed Markdown reports.
+Output rare, actionable, evidence-backed Markdown reports. Checkpoint runs additionally record candidate counts and later human feedback so usefulness can be measured instead of assumed.

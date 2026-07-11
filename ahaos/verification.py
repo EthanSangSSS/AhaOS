@@ -11,6 +11,13 @@ TRUST_SCORE = {
     "untrusted_external": 0.2,
 }
 
+_MULTI_SOURCE_MECHANISMS = {
+    "cross_project_pattern",
+    "contradiction",
+    "negative_space",
+    "spreading_activation",
+}
+
 
 def evidence_score(candidate: InsightCandidate) -> float:
     if not candidate.evidence:
@@ -31,6 +38,10 @@ def verify_candidate(candidate: InsightCandidate, require_evidence: bool = True)
             errors.append("evidence score too low")
         if candidate.evidence and all(item.trust_level == "model_inference" for item in candidate.evidence):
             errors.append("model inference cannot be the only evidence")
+        if candidate.mechanism in _MULTI_SOURCE_MECHANISMS:
+            refs = {item.ref for item in candidate.evidence if item.ref}
+            if len(refs) < 2:
+                errors.append("insufficient independent evidence")
             
     if not candidate.recommended_action.strip():
         errors.append("missing recommended_action")

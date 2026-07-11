@@ -103,3 +103,28 @@ def test_old_open_loops_receive_bounded_age_boost() -> None:
     
     assert p_old > p_fresh
     assert p_old <= 1.0  # overall cap
+
+
+def test_loop_age_boost_accumulates_over_days_not_hours() -> None:
+    loop = OpenLoop(
+        id="aged",
+        title="Long-lived loop",
+        why_it_matters="needs a bounded next step",
+        priority="P2",
+        created_at=0.0,
+    )
+
+    # Use a non-zero creation time because 0.0 represents missing metadata.
+    loop = OpenLoop(
+        id=loop.id,
+        title=loop.title,
+        why_it_matters=loop.why_it_matters,
+        priority=loop.priority,
+        created_at=1.0,
+    )
+    fresh = loop_pressure(loop, current_time=1.0)
+    after_five_hours = loop_pressure(loop, current_time=1.0 + 5 * 60 * 60)
+    after_twenty_days = loop_pressure(loop, current_time=1.0 + 20 * 24 * 60 * 60)
+
+    assert after_five_hours < fresh + 0.01
+    assert after_twenty_days == min(1.0, fresh + 0.2)

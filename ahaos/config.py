@@ -20,6 +20,36 @@ DEFAULT_TAG_KEYWORDS = {
     "test",
     "validation",
     "workflow",
+    "procedure",
+    "failure",
+    "deploy",
+    "migration",
+}
+
+# Normalize common Chinese task language into the existing portable tag space.
+# The pilot remains deterministic and does not depend on an external language model.
+DEFAULT_TAG_ALIASES = {
+    "发布": "release",
+    "上线": "release",
+    "部署": "deploy",
+    "验证": "validation",
+    "检查": "validation",
+    "测试": "test",
+    "回滚": "rollback",
+    "迁移": "migration",
+    "流程": "procedure",
+    "清单": "procedure",
+    "失败": "failure",
+    "报错": "failure",
+    "错误": "failure",
+    "故障": "incident",
+    "审查": "review",
+    "复盘": "review",
+    "交接": "handoff",
+    "工作流": "workflow",
+    "定时": "cron",
+    "内存": "memory",
+    "记忆": "memory",
 }
 
 

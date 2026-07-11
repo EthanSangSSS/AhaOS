@@ -15,6 +15,7 @@ from typing import Any, Iterable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ahaos.incubation import incubate
+from ahaos.atomize import infer_memory_type, infer_tags as _infer_tags
 from ahaos.report import render_markdown_report, write_report
 from ahaos.storage_jsonl import (
     load_memory_atoms,
@@ -159,14 +160,7 @@ def clean_text_claim(line: str) -> str:
 
 
 def infer_tags(text: str) -> list[str]:
-    tags = set()
-    for tag in re.findall(r"#([A-Za-z0-9_-]+)", text):
-        tags.add(tag.lower())
-    for tag in re.findall(r"`([A-Za-z0-9_-]+)`", text):
-        tags.add(tag.lower())
-    words = {word.lower() for word in re.findall(r"[A-Za-z][A-Za-z0-9_-]*", text)}
-    tags.update(words.intersection(TAG_KEYWORDS))
-    return sorted(tags)
+    return _infer_tags(text, TAG_KEYWORDS)
 
 
 def atom_from_text(path: Path, input_dir: Path, line: str) -> dict[str, Any] | None:
@@ -178,7 +172,7 @@ def atom_from_text(path: Path, input_dir: Path, line: str) -> dict[str, Any] | N
     return {
         "id": _stable_id("atom", f"{relative_ref}:{claim}"),
         "claim": claim[:240],
-        "type": "semantic",
+        "type": infer_memory_type(claim),
         "project": path.stem,
         "evidence": [
             {
@@ -333,7 +327,9 @@ def apply_seen_metadata(
         previous_created = numeric_timestamp(previous.get("created_at"))
         explicit_created = numeric_timestamp(row.get("created_at"))
         row["created_at"] = previous_created or explicit_created or now
-        row["last_seen_at"] = now
+        previous_seen = numeric_timestamp(previous.get("last_seen_at"))
+        explicit_seen = numeric_timestamp(row.get("last_seen_at"))
+        row["last_seen_at"] = previous_seen or explicit_seen or now
         row.setdefault("last_triggered_at", numeric_timestamp(previous.get("last_triggered_at")))
         row.setdefault("activation_count", int(previous.get("activation_count", 0) or 0))
 
@@ -356,6 +352,7 @@ def mark_activated_metadata(
         row_id = str(row.get("id", ""))
         if row_id not in activated_ids or row_id in initial_trigger_ids:
             continue
+        row["last_seen_at"] = now
         row["last_triggered_at"] = now
         row["activation_count"] = int(row.get("activation_count", 0) or 0) + 1
 
@@ -791,6 +788,8 @@ def run_pilot(
     if activated_atom_ids:
         mark_activated_metadata(atoms, activated_atom_ids, trigger_atom_ids, now)
         write_temp_memory(work_dir, atoms, loops)
+        loaded_atoms = load_memory_atoms(work_dir)
+        loaded_loops = load_open_loops(work_dir)
 
     candidates = incubate(
         loaded_atoms,

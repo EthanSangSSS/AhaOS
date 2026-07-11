@@ -17,6 +17,8 @@ PRIORITY_WEIGHT = {
 # Half-life in seconds: ~30 days → an atom unseen for 30 days retains 50 % of its salience.
 _FORGETTING_HALF_LIFE = 30 * 24 * 3600  # 2_592_000 s
 _FORGETTING_FLOOR = 0.3                 # salience never decays below this floor
+_AGE_BOOST_PER_DAY = 0.01
+_AGE_BOOST_CAP = 0.2
 
 
 def salience_with_decay(atom: MemoryAtom, current_time: float) -> float:
@@ -82,7 +84,7 @@ def memory_pressure(atom: MemoryAtom, current_time: float | None = None) -> floa
     age_boost = 0.0
     if atom.created_at > 0.0:
         age = max(0.0, current_time - atom.created_at)
-        age_boost = min(0.2, age * 0.00001)
+        age_boost = min(_AGE_BOOST_CAP, age * (_AGE_BOOST_PER_DAY / (24 * 3600)))
 
     # P1-A: activation heat from repeated triggers
     heat = activation_heat(atom)
@@ -98,7 +100,7 @@ def loop_pressure(loop: OpenLoop, current_time: float | None = None) -> float:
         if current_time is None:
             current_time = time.time()
         age = max(0.0, current_time - loop.created_at)
-        age_boost = min(0.2, age * 0.00001)
+        age_boost = min(_AGE_BOOST_CAP, age * (_AGE_BOOST_PER_DAY / (24 * 3600)))
 
     return min(1.0, base + age_boost)
 

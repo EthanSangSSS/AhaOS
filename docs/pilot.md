@@ -21,7 +21,7 @@ Use `--dry-run` to print the generated Markdown report instead of writing a repo
 
 The pilot only reads `.md`, `.txt`, and `.jsonl` files under the explicit `--input-dir`. It refuses to scan `$HOME`, skips hidden files and hidden directories, and skips credential-like paths including `.env`, `.pem`, `.key`, `.ssh`, `.config`, `.git`, browser, token, secret, password, credential, and auth names.
 
-Markdown and text inputs are converted into conservative memory atoms with `local_file` evidence, `first_party_file` trust, confidence `0.7`, and tags inferred only from visible keywords. JSONL rows that already look like AhaOS memory atoms or open loops are accepted.
+Markdown and text inputs are converted into conservative memory atoms with `local_file` evidence, `first_party_file` trust, confidence `0.7`, and deterministic tags inferred from visible English keywords, explicit tags, and common Chinese task concepts. Explicit procedural language is classified as `procedural`; JSONL rows that already look like AhaOS memory atoms or open loops are accepted.
 
 ## Generated Files
 
@@ -48,7 +48,7 @@ The pilot supports multiple association heuristics to map latent links and candi
 3. `open_loop_bridge`: Connects active open loops with memory atoms that might resolve them, based on explicit linkage, shared tags, or keyword overlap.
 
 ### Advanced Mechanisms
-1. **Time/Activation Fields & Age Boost**: Memory atoms and open loops track `created_at`, `last_seen_at`, `last_triggered_at`, and `activation_count`. A time-based `age boost` increases the pressure of older, unresolved atoms and loops, capped at `0.2`.
+1. **Time/Activation Fields & Age Boost**: Memory atoms and open loops track `created_at`, `last_seen_at`, `last_triggered_at`, and `activation_count`. A time-based `age boost` increases over days for older unresolved atoms and loops, capped at `0.2`; a full scan does not reset the dormancy clock.
 2. **Dynamic Novelty Calculation**: Instead of hardcoded values, novelty is computed dynamically based on the number of projects, evidence, age, and structural distance (Jaccard distance).
 3. **Negative Space Mining**: Automatically mines "negative space" when multiple active memory atoms care about a tag/topic but lack a corresponding `procedural` or `decision` type solution.
 4. **Incremental Trigger Mode**: Preserves state in `work-dir/state.json`. After the first run, newly added atoms act as trigger atoms. Candidates and links that contain triggers annotate `triggered_by_atom_ids`, prioritize "new atom activating old atom" by boosting score, update activation metadata for reactivated older atoms, and get collected in `trigger_candidates.jsonl`.

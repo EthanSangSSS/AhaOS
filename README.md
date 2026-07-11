@@ -82,9 +82,9 @@ ahaos run --memory-dir examples/coding_agent_pr_review --report-dir .ahaos/repor
 
 ## Current scope
 
-AhaOS v0.3 is an incubation-first insight layer.
+AhaOS v0.4 is an incubation-first insight layer with a local agent checkpoint loop.
 
-### v0.3 includes:
+### v0.4 includes:
 - temporal metadata
 - forgetting-curve salience decay
 - activation heat
@@ -93,6 +93,10 @@ AhaOS v0.3 is an incubation-first insight layer.
 - pilot trigger candidates
 - candidate maturation
 - local pilot state
+- persistent per-project checkpoint state
+- structured task-event capture and feedback metrics
+- Chinese task tags and procedural atom typing
+- independent-evidence requirements for pattern claims
 
 ## Local Pilot Quickstart
 
@@ -117,15 +121,33 @@ python3 scripts/pilot.py \
   --dry-run
 ```
 
-## Agent Workflow Integration
+## Agent Checkpoints
 
-AhaOS is most useful as an agent-side memory incubator, not as a replacement for an agent's working memory or for primary evidence. A practical integration pattern is to run it at three checkpoints:
+`scripts/agent_checkpoint.py` is the local-agent entry point. It accepts only explicit task summaries, stores state under `~/Library/Application Support/AhaOS` on macOS, namespaces data by project, and records runs plus human feedback. It never scans agent histories or `$HOME`.
 
-1. **Preflight:** before complex multi-file work, release/signing/CI/cron changes, or workflow design, create a small explicit `/tmp` input bundle with the current goal, constraints, known risks, and relevant local notes. Inspect AhaOS output for historical traps, protected scopes, and reusable prior patterns.
-2. **Mid-flight:** after repeated failures or surprising behavior, add the failing commands, observations, and candidate causes as JSONL or Markdown notes. Use `trigger_candidates.jsonl` to see whether the new evidence reactivates older dormant memories.
-3. **Final reflection:** before commit/push or handoff, review `aha_candidates.jsonl` and `latent_links.jsonl` for unclosed risks and reusable lessons. Promote only verified findings into AGENTS.md rules, skills, SOPs, or checklists.
+```bash
+python3 scripts/agent_checkpoint.py checkpoint \
+  --project "$PWD" \
+  --stage preflight \
+  --goal "Validate a release workflow change" \
+  --observation "The migration rollback path must be verified before handoff." \
+  --open-loop "Confirm the rollback command has current evidence" \
+  --priority P1
+```
 
-Treat AhaOS outputs as hypotheses. Validate them with source files, tests, logs, builds, git state, and other primary evidence before acting. Do not feed secrets, env files, SSH keys, token files, browser profiles, or broad `$HOME` scans into the pilot.
+After acting on a candidate, record the outcome and inspect aggregate evidence:
+
+```bash
+python3 scripts/agent_checkpoint.py feedback \
+  --project "$PWD" \
+  --candidate-id cand_example \
+  --verdict helped \
+  --note "The candidate revealed a reusable rollback checklist."
+
+python3 scripts/agent_checkpoint.py metrics --project "$PWD"
+```
+
+Run one checkpoint when a task has at least two signals: multi-file or recurring work, release/CI/cron risk, a repeated failure, workflow design, or final review before delivery. Treat every candidate as a hypothesis and validate it with source files, tests, logs, builds, git state, and other primary evidence before acting. Do not enter secrets, env values, SSH keys, tokens, browser data, or raw chat logs.
 
 ## Non-goals
 
@@ -148,6 +170,7 @@ ahaos/
   pressure.py        # open-loop, salience, and age-boost scoring
   incubation.py      # pattern / contradiction / reuse / negative-space mining
   verification.py    # evidence and safety gates
+  agent_memory.py    # persistent checkpoint capture and feedback metrics
   report.py          # Markdown report generation
   cli.py             # command line interface
 
@@ -159,6 +182,7 @@ docs/
 
 scripts/
   pilot.py           # explicit local input pilot with trigger candidates
+  agent_checkpoint.py # local agent checkpoint command
 
 skills/
   codex/ahaos-insight-engine/SKILL.md

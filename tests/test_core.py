@@ -20,7 +20,13 @@ def make_candidate(**overrides: object) -> InsightCandidate:
                 ref="notes.md",
                 quote="release checks recur",
                 trust_level="first_party_file",
-            )
+            ),
+            Evidence(
+                type="local_file",
+                ref="other-notes.md",
+                quote="release checks recur elsewhere",
+                trust_level="first_party_file",
+            ),
         ],
         "mechanism": "cross_project_pattern",
         "novelty": 0.7,
@@ -126,6 +132,24 @@ def test_verify_candidate_rejects_missing_evidence_and_model_only_support() -> N
     assert "model inference cannot be the only evidence" in errors
 
 
+def test_verify_candidate_requires_independent_sources_for_pattern_claims() -> None:
+    candidate = make_candidate(
+        evidence=[
+            Evidence(
+                type="local_file",
+                ref="single-note.md",
+                quote="same source",
+                trust_level="first_party_file",
+            )
+        ]
+    )
+
+    ok, errors = verify_candidate(candidate)
+
+    assert not ok
+    assert "insufficient independent evidence" in errors
+
+
 def test_time_pressure_age_boost() -> None:
     # MemoryAtom age boost — atom is seen at creation time so no forgetting decay
     base_atom = MemoryAtom(
@@ -139,15 +163,11 @@ def test_time_pressure_age_boost() -> None:
     )
     p_young = memory_pressure(base_atom, current_time=100.0)
     p_old = memory_pressure(base_atom, current_time=40000.0)
-    p_capped = memory_pressure(base_atom, current_time=60000.0)
+    p_later = memory_pressure(base_atom, current_time=60000.0)
 
-    # age_boost is a continuous ramp capped at 0.2 but forgetting decay now also
-    # changes with time, so we check the invariants rather than exact equality:
-    # pressure continues to increase and then stabilises to some plateau.
+    # Age pressure accumulates over days rather than reaching its cap within hours.
     assert p_old > p_young
-    # At very large times the age_boost cap (0.2) has been reached; verify it
-    # doesn't keep growing indefinitely past the cap window.
-    assert abs(p_capped - p_old) < 0.05   # within 5 % of each other in the plateau region
+    assert p_later > p_old
 
     # OpenLoop age boost
     base_loop = OpenLoop(
@@ -159,10 +179,12 @@ def test_time_pressure_age_boost() -> None:
     )
     pl_young = loop_pressure(base_loop, current_time=100.0)
     pl_old = loop_pressure(base_loop, current_time=40000.0)
-    pl_capped = loop_pressure(base_loop, current_time=60000.0)
+    pl_later = loop_pressure(base_loop, current_time=60000.0)
+    pl_twenty_days = loop_pressure(base_loop, current_time=100.0 + 20 * 24 * 60 * 60)
 
     assert pl_old > pl_young
-    assert pl_capped == pl_old
+    assert pl_later > pl_old
+    assert pl_twenty_days == 0.75
 
 
 # ---------------------------------------------------------------------------
@@ -464,5 +486,3 @@ def test_parse_simple_yaml() -> None:
     assert "custom_tag2" in keywords
     assert "custom_tag3" in keywords
     assert "release" in keywords  # Default tag
-
-
